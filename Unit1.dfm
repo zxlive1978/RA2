@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 663
-  Top = 54
+  Left = 511
+  Top = 297
   BorderStyle = bsSingle
   Caption = #1050#1086#1085#1074#1077#1088#1090#1077#1088' '#1080#1079' Geoscape '#1074' DTCIS'
   ClientHeight = 497
@@ -2138,7 +2138,7 @@ object Form1: TForm1
     Top = 0
     Width = 495
     Height = 497
-    ActivePage = TabSheet1
+    ActivePage = TabSheet3
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -2298,7 +2298,7 @@ object Form1: TForm1
       object StatusBar1: TStatusBar
         Left = 0
         Top = 450
-        Width = 301
+        Width = 487
         Height = 19
         Panels = <>
       end
@@ -2386,6 +2386,61 @@ object Form1: TForm1
           Caption = '@'
           TabOrder = 1
           OnClick = Button12Click
+        end
+      end
+      object GroupBox6: TGroupBox
+        Left = 21
+        Top = 144
+        Width = 257
+        Height = 145
+        Caption = #1062#1080#1082#1083
+        TabOrder = 2
+        object Label8: TLabel
+          Left = 208
+          Top = 32
+          Width = 21
+          Height = 13
+          Caption = #1089#1077#1082'.'
+        end
+        object Edit3: TEdit
+          Left = 152
+          Top = 24
+          Width = 49
+          Height = 21
+          TabOrder = 0
+          Text = '20'
+        end
+        object CheckBox1: TCheckBox
+          Left = 32
+          Top = 24
+          Width = 97
+          Height = 17
+          Caption = #1042#1088#1077#1084#1103#1085#1082#1072
+          TabOrder = 1
+        end
+        object Edit4: TEdit
+          Left = 152
+          Top = 64
+          Width = 49
+          Height = 21
+          TabOrder = 2
+          Text = '20'
+        end
+        object CheckBox2: TCheckBox
+          Left = 32
+          Top = 64
+          Width = 97
+          Height = 17
+          Caption = #1043#1083#1091#1073#1080#1085#1082#1072
+          TabOrder = 3
+        end
+        object CheckBox3: TCheckBox
+          Left = 32
+          Top = 96
+          Width = 97
+          Height = 17
+          Caption = #1054#1090#1089#1090#1072#1074#1072#1085#1080#1077
+          TabOrder = 4
         end
       end
     end
@@ -2547,7 +2602,7 @@ object Form1: TForm1
         Top = 24
         Width = 145
         Height = 21
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 11
         Visible = False
         OnChange = ComboBox1Change

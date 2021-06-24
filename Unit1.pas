@@ -84,6 +84,13 @@ type
     Table5: TTable;
     ListBox4: TListBox;
     ListBox5: TListBox;
+    GroupBox6: TGroupBox;
+    Edit3: TEdit;
+    Label8: TLabel;
+    CheckBox1: TCheckBox;
+    Edit4: TEdit;
+    CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -1221,6 +1228,12 @@ var
 
   gPath : String = ''; //Путь к папке.geoscape
   dPath : String = ''; //Путь к папке.dtcis
+  gcycletime: Boolean = false; //Разрешен ли цикл для времянок
+  gcycletimeInter: Integer = 20; //цикл для времянок в сек
+  gcycledepth: Boolean = false; //Разрешен ли цикл для глубинок
+  gcycledepthInter: Integer = 20; //цикл для глубинок в сек
+  gcycledepthgaz: Boolean = false; //Разрешен ли цикл для отставания
+
   CurAttr : Integer;
   //Текущий временной файл Геоскейп
   time_name_ga : string;
@@ -3556,6 +3569,8 @@ begin
   }
   Ini.WriteString('Geoscape','gpath', gPath);
   Ini.WriteString('Dtcis','dpath', dPath);
+  Ini.WriteBool('Cycle','gcycletime', gcycletime);
+  Ini.WriteInteger('Cycle','gtimeinterval', gcycletimeInter);
   Ini.Free;
   // Допустимые методы WriteInteger, WriteString, WriteBool
   
@@ -3575,8 +3590,14 @@ begin
   //Путь к geoscape
   gPath:= Ini.ReadString('Geoscape','gpath','C:\Wells');
   dPath:= Ini.ReadString('Dtcis','dpath','C:\');
+  gcycletime:= Ini.ReadBool('Cycle','gcycletime', false );
+  gcycletimeInter:= Ini.ReadInteger('Cycle','gtimeinterval',20);
+
   Form1.Edit1.Text:=gPath;
   Form1.Edit2.Text:=dPath;
+
+  Form1.CheckBox1.Checked:=gcycletime;
+  Form1.Edit3.Text:=IntToStr(gcycletimeInter);
   Ini.Free;
 end;
 
