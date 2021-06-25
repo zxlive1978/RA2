@@ -3,8 +3,8 @@ object Form1: TForm1
   Top = 297
   BorderStyle = bsSingle
   Caption = #1050#1086#1085#1074#1077#1088#1090#1077#1088' '#1080#1079' Geoscape '#1074' DTCIS'
-  ClientHeight = 497
-  ClientWidth = 495
+  ClientHeight = 515
+  ClientWidth = 308
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -2136,9 +2136,9 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 495
-    Height = 497
-    ActivePage = TabSheet3
+    Width = 308
+    Height = 515
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -2297,8 +2297,8 @@ object Form1: TForm1
       end
       object StatusBar1: TStatusBar
         Left = 0
-        Top = 450
-        Width = 487
+        Top = 468
+        Width = 300
         Height = 19
         Panels = <>
       end
@@ -2397,7 +2397,14 @@ object Form1: TForm1
         TabOrder = 2
         object Label8: TLabel
           Left = 208
-          Top = 32
+          Top = 30
+          Width = 21
+          Height = 13
+          Caption = #1089#1077#1082'.'
+        end
+        object Label9: TLabel
+          Left = 208
+          Top = 70
           Width = 21
           Height = 13
           Caption = #1089#1077#1082'.'
@@ -2409,6 +2416,7 @@ object Form1: TForm1
           Height = 21
           TabOrder = 0
           Text = '20'
+          OnChange = Edit3Change
         end
         object CheckBox1: TCheckBox
           Left = 32
@@ -2417,6 +2425,7 @@ object Form1: TForm1
           Height = 17
           Caption = #1042#1088#1077#1084#1103#1085#1082#1072
           TabOrder = 1
+          OnClick = CheckBox1Click
         end
         object Edit4: TEdit
           Left = 152
@@ -2425,6 +2434,7 @@ object Form1: TForm1
           Height = 21
           TabOrder = 2
           Text = '20'
+          OnChange = Edit4Change
         end
         object CheckBox2: TCheckBox
           Left = 32
@@ -2433,14 +2443,16 @@ object Form1: TForm1
           Height = 17
           Caption = #1043#1083#1091#1073#1080#1085#1082#1072
           TabOrder = 3
+          OnClick = CheckBox2Click
         end
         object CheckBox3: TCheckBox
           Left = 32
-          Top = 96
+          Top = 100
           Width = 97
           Height = 17
           Caption = #1054#1090#1089#1090#1072#1074#1072#1085#1080#1077
           TabOrder = 4
+          OnClick = CheckBox3Click
         end
       end
     end
@@ -3041,5 +3053,17 @@ object Form1: TForm1
     DatabaseName = 'GEOTODTCIS'
     Left = 204
     Top = 152
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 44
+    Top = 352
+  end
+  object Timer2: TTimer
+    Enabled = False
+    OnTimer = Timer2Timer
+    Left = 100
+    Top = 352
   end
 end

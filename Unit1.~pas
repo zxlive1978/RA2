@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Grids, DBGrids, DB, DBTables, StdCtrls, Menus, FileCtrl, Math,
-  ValEdit, ComCtrls, DBCtrls, DateUtils, IniFiles, Buttons;
+  ValEdit, ComCtrls, DBCtrls, DateUtils, IniFiles, Buttons, ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -91,6 +91,8 @@ type
     Edit4: TEdit;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
+    Timer1: TTimer;
+    Timer2: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -112,6 +114,13 @@ type
     procedure Button12Click(Sender: TObject);
     procedure Button13Click(Sender: TObject);
     procedure Button14Click(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
+    procedure Edit3Change(Sender: TObject);
+    procedure CheckBox2Click(Sender: TObject);
+    procedure Edit4Change(Sender: TObject);
+    procedure CheckBox3Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
   private
     { Private declarations }
   public
@@ -1711,9 +1720,9 @@ end;
 procedure writeLstRecdepth();
 begin
 
-  AssignFile(myFile, dPath+'Store' +'.lst');
+  AssignFile(myFile, dPath+'temp_str' +'.lst');
   //Если нет файла, создаем
-  if FileExists(dPath+'Store'+'.lst')=False
+  if FileExists(dPath+'temp_str'+'.lst')=False
   then   {$I-} Rewrite(myFile) {$I+} //Открываем типизированный файл в режиме чтение/запись.
   else {$I-} Reset(myFile); {$I+}
 
@@ -1762,9 +1771,9 @@ curnumb: Integer;
 curdep: Single;
 begin
 
-  AssignFile(myFile, dPath+'Store' +'.lst');
+  AssignFile(myFile, dPath+'temp_str' +'.lst');
   //Если нет файла, создаем
-  if FileExists(dPath+'Store'+'.lst')=False
+  if FileExists(dPath+'temp_str'+'.lst')=False
   then   {$I-} Rewrite(myFile) {$I+} //Открываем типизированный файл в режиме чтение/запись.
   else {$I-} Reset(myFile); {$I+}
   if FileSize(myFile)>0 then begin
@@ -1831,9 +1840,9 @@ end;
 //Запись записи DEP по глубине
 procedure writeDepRecdepth();
 begin
-  AssignFile(FileZAG, dPath+'Store'+'.dep');
+  AssignFile(FileZAG, dPath+'temp_str'+'.dep');
   //Если нет файла, создаем
-  if FileExists(dPath+'Store'+'.dep')=False
+  if FileExists(dPath+'temp_str'+'.dep')=False
   then   {$I-} Rewrite(FileZAG) {$I+} //Открываем типизированный файл в режиме чтение/запись.
   else {$I-} Reset(FileZAG); {$I+}
   Application.ProcessMessages;
@@ -1855,13 +1864,13 @@ AAA: Double;
 begin
    shut:=0;
   //Есть ли файла
-  if (FileExists(dPath+'Store'+'.dep')=True) and (FileExists(gPath+'\BLData.db')=True)
+  if (FileExists(dPath+'temp_str'+'.dep')=True) and (FileExists(gPath+'\BLData.db')=True)
   then    begin
   form1.Table5.Active:= False;
   form1.Table5.TableName:= 'BLData.db';
   form1.Table5.Active:= True;
   form1.Button14.Enabled:= False;
-  AssignFile(FileZAG, dPath+'Store'+'.dep');
+  AssignFile(FileZAG, dPath+'temp_str'+'.dep');
   {$I-} Reset(FileZAG); {$I+}
    //Переходим в начало
   form1.ProgressBar3.Min:=0;
@@ -3556,6 +3565,202 @@ for idy1:=0  to Table1.Fields.Count-1 do
     form1.Button10.Enabled:=true;
 end;
 
+
+
+
+procedure cycletime();
+var
+idx1,idx10,idy1,idspr,len, f,l,i,Res: Integer;
+s,GID, ep: string;
+Value: Single;
+daterec : TDateTime;
+StrDate : string;
+LongTime: LongWord;
+Fmt     : TFormatSettings;
+epoxutc      : TDateTime;
+begin
+if (form1.ListBox2.Items.Count>0) then
+begin
+//старт и прогресс
+form1.Button10.Enabled:=False;
+form1.ProgressBar1.Min:=0;
+form1.ProgressBar1.Max:= form1.DBGrid1.DataSource.DataSet.RecordCount;
+form1.ProgressBar1.Position:=0;
+//Формат времени
+fmt.ShortDateFormat:='dd/mm/yyyy';
+fmt.DateSeparator  :='/';
+fmt.LongTimeFormat :='hh:nn:ss';
+fmt.TimeSeparator  :=':';
+//StrDate:='23/02/2011 12:34:56';
+StrDate:='01/01/1970 00:00:00';
+epoxutc:=StrToDateTime(StrDate,Fmt);
+
+//LST
+lstrec.BaseDisp:=0;
+lstrec.KeyValue:=386478;
+lstrec.TimeDos:=386478;
+lstrec.NRecTrue:=0;
+lstrec.NRecLogic:=0;
+lstrec.FlagState:=0;
+
+//Заголовок DEP
+depRecZAG.NRec:=0;
+depRecZAG.NWELL:=65;
+depRecZAG.LengthRec:=1600; //536 452 226 1600; Длина записи включая заголовок все записи
+depRecZAG.NumbParKeY:=52; //Номер ключевого параметра У!!!
+depRecZAG.CountPar:=255; //87 74 36 255;
+
+
+//Сверка одной записи
+Form1.Table1.Active:= true;
+Form1.Table3.Active:= true;
+Form1.Table1.First;
+Form1.Table3.First;
+Form1.Memo5.Lines.Add(IntToStr(Form1.Table1.RecordCount));
+
+//Массив GID2 ->GID1Разрез то DICIS параметры
+RaToDTCIS();
+len:= Length(RazToDTCIS);
+
+//Узнать количество записей в lst файле
+{idx1:=getNumbsLst();
+lstrec.BaseDisp:=depRecZAG.LengthRec*idx1;
+Form1.Table1.MoveBy(idx1);
+lstrec.NRecTrue:=idx1;
+lstrec.NRecLogic:=idx1;
+depRecZAG.NRec:=idx1;
+
+for idx1:=idx1 to Form1.Table1.RecordCount-1 do begin
+}
+
+//Узнать количество записей в lst файле
+Counttime:= getNumbsLst();
+idx1:=Counttime.i;
+
+
+
+
+idx10:=Form1.Table1.RecordCount-1;
+
+Form1.Table1.Last;
+idx10:=0;
+//Поиск новых записей по времени
+if  idx1<>0 then begin
+for i:=Form1.Table1.RecordCount-1 downto 0 do begin
+
+    daterec:= Form1.Table1.FieldByName('Date').AsDateTime;
+    //Res:=SecondsBetween(epoxutc,daterec);
+    LongTime:= Trunc(Form1.Table1.FieldByName('Time').AsInteger / 1000);
+    //ValL[2][1]:= Form1.Table1.FieldByName('Date').AsInteger+Form1.Table1.FieldByName('Time').AsInteger;
+    Res:=SecondsBetween(epoxutc,daterec)+  LongTime;
+    if Counttime.S= Res then begin
+      idx10:=form1.Table1.RecNo ;
+      break;
+    end;
+    idx10:=form1.Table1.RecNo;
+    Form1.Table1.Prior;
+    Form1.ListBox5.Items.Add(IntToStr(Res));
+    Form1.ListBox5.Items.Add(IntToStr(Counttime.S));
+end;
+ Form1.ListBox5.Items.Add(IntToStr(Form1.Table1.RecordCount));
+ Form1.ListBox5.Items.Add(IntToStr(idx10));
+ Form1.ListBox5.Items.Add(IntToStr(idx1));
+//ListBox5.Items.Add(IntToStr(Res));
+//ListBox5.Items.Add(IntToStr(Counttime.S));
+end;
+
+lstrec.BaseDisp:=depRecZAG.LengthRec*idx1;
+Form1.Table1.First;
+Form1.ListBox5.Items.Add(IntToStr(form1.Table1.RecNo));
+Form1.Table1.MoveBy(idx10+1);
+lstrec.NRecTrue:=idx1;
+lstrec.NRecLogic:=idx1;
+depRecZAG.NRec:=idx1;
+
+for idx10:=idx10+1 to Form1.Table1.RecordCount-1 do begin
+
+for idy1:=0  to Form1.Table1.Fields.Count-1 do
+    begin
+    Application.ProcessMessages;
+    s:= Form1.Table1.Fields[idy1].FieldName;
+    //имена параметров
+    if s[1]='S' then begin
+      GID:= s;
+      Delete(GID,1,1); // - S
+      //Length(RazToDTCIS);
+      for idspr:=0 to  len-1 do begin
+        if RazToDTCIS[idspr,1] = StrToInt(GID) then begin //массив соответст параметров
+          for f:=0 to 225 do begin //float
+            if RazToDTCIS[idspr,0]= ValF[f,0] then begin
+              ValF[f,1]:= Form1.Table1.FieldByName(s).AsFloat;
+              Application.ProcessMessages;
+            end;
+          end;
+          for i:=0 to 14 do begin //integer
+            if RazToDTCIS[idspr,0]= ValI[i,0] then begin
+              ValI[i,1]:= Form1.Table1.FieldByName(s).AsInteger;
+              Application.ProcessMessages;
+            end;
+          end;
+          for l:=0 to 7 do begin //16ng
+            if RazToDTCIS[idspr,0]= ValL[l,0] then begin
+              ValL[l,1]:= Form1.Table1.FieldByName(s).AsInteger;
+              Application.ProcessMessages;
+            end;
+          end;
+          //Form1.Memo5.Lines.Add(IntToStr(RazToDTCIS[idspr,0]));
+
+        end;
+      end;
+
+      end;
+    end;
+    daterec:= Form1.Table1.FieldByName('Date').AsDateTime;
+    Res:=SecondsBetween(epoxutc,daterec);
+    //ValL[2][1]:= Form1.Table1.FieldByName('Date').AsInteger+Form1.Table1.FieldByName('Time').AsInteger;
+    ValL[2][1]:=Res+  Math.Floor( Form1.Table1.FieldByName('Time').AsInteger /1000);
+
+    Form1.Table1.Next;
+    Application.ProcessMessages;
+    form1.ProgressBar1.Position:= form1.ProgressBar1.Position+1;
+    //
+    setrec();
+
+    //if (Counttime.S<depRecZAG.val52) or (Counttime.S=0)  then begin
+
+    depRecZAG.val86:='s';
+    depRecZAG.val254:='g';
+    //Глубина забоя
+    //depRecZAG.val52:=386478+10*idx1;
+
+    //Запись Dep записи
+    writeDepRec();
+
+    //следующая LST запись
+    lstrec.BaseDisp:=depRecZAG.LengthRec*idx1;
+    //Глубина забоя
+    //Время сбора данных
+    lstrec.KeyValue:=depRecZAG.val53;
+    //Время сбора данных
+    //Глубина забоя
+    lstrec.TimeDos:=depRecZAG.val52;
+    lstrec.NRecTrue:=lstrec.NRecTrue+idx1;
+    lstrec.NRecLogic:=lstrec.NRecTrue+idx1;
+
+    //Запись LST записи
+    writeLstRec();
+    idx1:= idx1+1;
+    //end;
+    end;
+    form1.ProgressBar1.Position:=form1.DBGrid1.DataSource.DataSet.RecordCount;
+    Form1.Memo5.Lines.Add(IntToStr(Form1.Table1.RecordCount));
+    Application.ProcessMessages;
+    form1.Button10.Enabled:=true;
+    end;
+    form1.Button10.Enabled:=true;
+end;
+
+
 procedure TForm1.FormDestroy(Sender: TObject);
 var
   Ini: Tinifile;
@@ -3567,8 +3772,17 @@ begin
   Ini.WriteInteger('Position','X',form1.left);
   Ini.WriteInteger('Position','Y',form1.top);
   }
+
+
+
+
   Ini.WriteString('Geoscape','gpath', gPath);
   Ini.WriteString('Dtcis','dpath', dPath);
+  Ini.WriteBool('Cycle','gcycletime', gcycletime);
+  Ini.WriteInteger('Cycle','gtimeinterval', gcycletimeInter);
+  Ini.WriteBool('Cycle','gcycledepth', gcycledepth);
+  Ini.WriteInteger('Cycle','gcycledepthInter', gcycledepthInter);
+  Ini.WriteBool('Cycle','gcycledepthgaz', gcycledepthgaz);
   Ini.Free;
   // Допустимые методы WriteInteger, WriteString, WriteBool
   
@@ -3589,14 +3803,27 @@ begin
   gPath:= Ini.ReadString('Geoscape','gpath','C:\Wells');
   dPath:= Ini.ReadString('Dtcis','dpath','C:\');
   gcycletime:= Ini.ReadBool('Cycle','gcycletime', false );
-  gcycletimeInter:= Ini.ReadInteger('Cycle','gcycletime',20);
+  gcycletimeInter:= Ini.ReadInteger('Cycle','gtimeinterval',20);
+  gcycledepth:= Ini.ReadBool('Cycle','gcycledepth', false );
+  gcycledepthInter:= Ini.ReadInteger('Cycle','gcycledepthInter',20);
+  gcycledepthgaz:= Ini.ReadBool('Cycle','gcycledepthgaz', false );
 
   Form1.Edit1.Text:=gPath;
   Form1.Edit2.Text:=dPath;
 
   Form1.CheckBox1.Checked:=gcycletime;
   Form1.Edit3.Text:=IntToStr(gcycletimeInter);
+  Form1.CheckBox2.Checked:=gcycledepth;
+  Form1.Edit4.Text:=IntToStr(gcycledepthInter);
+  Form1.CheckBox3.Checked:=gcycledepthgaz;
   Ini.Free;
+  form1.Timer1.Interval:= 1000*gcycletimeInter;
+  form1.Timer2.Interval:= 1000*gcycledepthInter;
+  if (gcycletime=true) then
+    form1.Timer1.Enabled:=true;
+  if (gcycledepth=true) then
+    form1.Timer2.Enabled:=true;
+
 end;
 
 
@@ -3851,7 +4078,12 @@ end;
 procedure TForm1.Button13Click(Sender: TObject);
 var
 i: Integer;
+oldName, newName: String;
 begin
+oldName:=dPath+'temp_str' +'.lst';
+DeleteFile(oldName);
+oldName:=dPath+'temp_str' +'.dep';
+DeleteFile(oldName);
 
 if form1.ListBox3.Items.Count>0 then
 begin
@@ -3861,9 +4093,149 @@ for i:=0 to form1.ListBox3.Items.Count do begin
 
 end;
 
+if (gcycledepthgaz=true) then  begin
+  readwriteDepRecdepthbldata();
+  ShowMessage('увязка');
+  end;
+
+oldName:=dPath+'Store' +'.lst';
+DeleteFile(oldName);
+oldName:=dPath+'Store' +'.dep';
+DeleteFile(oldName);
+
+
+
+oldName:=dPath+'temp_str' +'.dep';
+newName:=dPath+'Store' +'.dep';
+RenameFile(oldName, newName);
+
+
+oldName:=dPath+'temp_str' +'.lst';
+newName:=dPath+'Store' +'.lst';
+RenameFile(oldName, newName);
+
+
+
 end;
 end;
 
+
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+gcycletime:= CheckBox1.Checked;
+if (gcycletime) then
+  form1.Timer1.Enabled:=true
+else
+  form1.Timer1.Enabled:=false;
+end;
+
+procedure TForm1.Edit3Change(Sender: TObject);
+begin
+gcycletimeInter:= StrToInt(Form1.Edit3.Text);
+form1.Timer1.Interval:= 1000*gcycletimeInter;
+end;
+
+procedure TForm1.CheckBox2Click(Sender: TObject);
+begin
+gcycledepth := CheckBox2.Checked;
+if (gcycledepth) then
+  form1.Timer2.Enabled:=true
+else
+  form1.Timer2.Enabled:=false;
+end;
+
+procedure TForm1.Edit4Change(Sender: TObject);
+begin
+gcycledepthInter:= StrToInt(Form1.Edit4.Text);
+form1.Timer2.Interval:=1000*gcycledepthInter;
+end;
+
+procedure TForm1.CheckBox3Click(Sender: TObject);
+begin
+gcycledepthgaz := CheckBox3.Checked;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+form1.Timer1.Enabled:=false;
+//Времянки
+searchFiles();
+//Добавление в picklist параметров Geoscape
+addgeoscapeparams();
+
+form1.ListBox5.Items.Add(ListBox2.Items[ListBox2.Count - 1]);
+
+if ListBox2.Items.Count>0 then
+begin
+//form1.ListBox5.Items.Add(ListBox2.Items[ListBox2.Count - 1]);
+form1.Table1.Active:= False;
+form1.Table1.DatabaseName:='GEOTODTCIS';
+form1.Table1.TableName:= ListBox2.Items[ListBox2.Count - 1];
+form1.Table1.Active:= True;
+
+cycletime();
+if form1.CheckBox1.Checked=true then
+   form1.Timer1.Enabled:=true
+   else
+   form1.Timer1.Enabled:=false;
+end;
+
+end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+var
+i: Integer;
+oldName, newName:String;
+begin
+form1.Timer2.Enabled:=false;
+//Глубинки
+searchFilesdepth();
+
+//Глубинки bldata
+searchFilesdepthbldata();
+
+oldName:=dPath+'temp_str' +'.lst';
+DeleteFile(oldName);
+oldName:=dPath+'temp_str' +'.dep';
+DeleteFile(oldName);
+
+if form1.ListBox3.Items.Count>0 then
+begin
+for i:=0 to form1.ListBox3.Items.Count do begin
+  form1.ListBox3.ItemIndex:=i;
+  depth_good('123');
+
+end;
+
+if (gcycledepthgaz=true) then  begin
+  readwriteDepRecdepthbldata();
+  end;
+
+oldName:=dPath+'Store' +'.lst';
+DeleteFile(oldName);
+oldName:=dPath+'Store' +'.dep';
+DeleteFile(oldName);
+
+
+
+oldName:=dPath+'temp_str' +'.dep';
+newName:=dPath+'Store' +'.dep';
+RenameFile(oldName, newName);
+
+
+oldName:=dPath+'temp_str' +'.lst';
+newName:=dPath+'Store' +'.lst';
+RenameFile(oldName, newName);
+
+
+
+if form1.CheckBox2.Checked=true then
+   form1.Timer2.Enabled:=true
+   else
+   form1.Timer2.Enabled:=false;
+end;
+
+end;
 
 end.
 
